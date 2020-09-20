@@ -36,8 +36,30 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
+    // Retroift2
+    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"              // last-version https://github.com/square/retrofit/releases
+    implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"        // last-version https://search.maven.org/search?q=g:com.squareup.retrofit2%20a:converter-gson
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"       // last-version https://search.maven.org/search?q=g:com.squareup.retrofit2%20a:adapter-rxjava2
+    implementation "com.squareup.retrofit2:converter-scalars:$retrofit_version"     //
+
+    // Okhttp
+    implementation "com.squareup.okhttp3:okhttp:$okhttp_version"                    // https://github.com/square/okhttp
+    implementation "com.squareup.okhttp3:logging-interceptor:4.8.1"                 // https://github.com/square/okhttp/tree/master/okhttp-logging-interceptor
+    implementation "com.squareup.okhttp3:okhttp-urlconnection:4.8.1"                // https://github.com/square/okhttp/tree/master/okhttp-urlconnection
+
+    // RxJava
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+
+
     // ViewPager2
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
+
+
+    // Glide
+    implementation 'com.github.bumptech.glide:glide:4.11.0'                         // https://github.com/bumptech/glide
+
+    // Log
+    implementation 'com.orhanobut:logger:2.2.0'                                     // https://github.com/orhanobut/logger
 
 
 }

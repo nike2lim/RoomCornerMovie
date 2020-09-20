@@ -1,4 +1,4 @@
-package kr.shlim.roomcornermovie
+package kr.shlim.roomcornermovie.view
 
 import android.content.Context
 import android.graphics.Rect
