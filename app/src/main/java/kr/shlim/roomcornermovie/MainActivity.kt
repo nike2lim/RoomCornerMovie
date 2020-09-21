@@ -145,29 +145,52 @@ class MainActivity : AppCompatActivity() {
             R.id.flatmap_api -> {
                 movieList.clear()
 
-                getBoxOffice().base().map { it -> it.boxOfficeResult.dailyBoxOfficeList }
-                    .subscribe({
-                        for (i in 0..it.size - 1) {
-                            val data = it.get(i)
-                            Logger.d("rnumb : ${data.rnum}, rank :  ${data.rank}, movieNm :  ${data.movieNm}")
+                val boxOffice = getBoxOffice()
+
+                var index = 0
+
+                boxOffice.toObservable()
+                    .map{ it -> it.boxOfficeResult.dailyBoxOfficeList }
+                    .repeat(10)
+                    .map{ it ->
+                        it.get(index++)}
+                    .flatMap {
+                        Logger.d("it.movieNm : ${it.movieNm}")
+                        getNaverAPI(it.movieNm).toObservable().base().take(10)
+                    }.base().subscribe(
+                        {
+                            Logger.d("naverAPI : ${it.items.get(0).title}")
+                            movieList.add(it)
+                        },
+                        {
+
+                        }, {
+                            updateList()
                         }
-
-                        it.forEach {
-
-                            getNaverAPI(it.movieNm).base().subscribe({
-                                Logger.d("naverAPI : ${it.items.get(0).title}")
-                                movieList.add(it)
-                                updateList()
-
-                            }, {
-                                Logger.e("NaverAPI Exception : ${it.localizedMessage}")
-
-                            })
-                        }
-
-                    }, {
-                        Logger.e("getBoxOffice fail : ${it.message}")
-                    })
+                    )
+//                getBoxOffice().base().map { it -> it.boxOfficeResult.dailyBoxOfficeList }
+//                    .subscribe({
+//                        for (i in 0..it.size - 1) {
+//                            val data = it.get(i)
+//                            Logger.d("rnumb : ${data.rnum}, rank :  ${data.rank}, movieNm :  ${data.movieNm}")
+//                        }
+//
+//                        it.forEach {
+//
+//                            getNaverAPI(it.movieNm).base().subscribe({
+//                                Logger.d("naverAPI : ${it.items.get(0).title}")
+//                                movieList.add(it)
+//                                updateList()
+//
+//                            }, {
+//                                Logger.e("NaverAPI Exception : ${it.localizedMessage}")
+//
+//                            })
+//                        }
+//
+//                    }, {
+//                        Logger.e("getBoxOffice fail : ${it.message}")
+//                    })
             }
         }
     }
