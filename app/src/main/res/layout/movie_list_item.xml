@@ -3,15 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@android:color/white"
+    android:background="@android:color/transparent"
     >
 
     <ImageView
         android:id="@+id/imageview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="380dp"
+        android:layout_height="400dp"
         android:layout_centerHorizontal="true"
-        android:scaleType="centerCrop"
+        android:scaleType="fitCenter"
         />
 
     <TextView
@@ -19,12 +19,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/imageview"
+        android:maxWidth="200dp"
         android:textSize="16dp"
         android:textColor="@android:color/black"
-        android:text="하하ㅏ하하ㅓㅇ뫄닝러ㅗㅁ나ㅣ러ㅗㅁㄴ아러ㅗㅁㄴ아러"
-        tools:text="2"
+        android:text="영화명"
+        android:maxLines="2"
+        android:ellipsize="marquee"
+        tools:text="asdlfkahsdfkljashfakljsdfkajshdfkasdjhfklsadhfkasdjfkasdlfskdaljhskladjaskdlhj"
         android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:visibility="invisible"
         />
 
 

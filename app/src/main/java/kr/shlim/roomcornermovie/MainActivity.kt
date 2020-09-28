@@ -7,17 +7,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.orhanobut.logger.Logger
 import io.reactivex.Observable
+import io.reactivex.ObservableSource
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.internal.operators.observable.ObservableAll
 import kotlinx.android.synthetic.main.activity_main.*
 import kr.shlim.roomcornermovie.data.dto.kobis.DailyBoxOffice
 import kr.shlim.roomcornermovie.data.dto.kobis.KobisDailyBoxOfficeListDTO
+import kr.shlim.roomcornermovie.data.dto.naver.NaverMovieItem
 import kr.shlim.roomcornermovie.data.dto.naver.NaverMovieListDTO
 import kr.shlim.roomcornermovie.ext.base
 import kr.shlim.roomcornermovie.ext.plusAssign
 import kr.shlim.roomcornermovie.network.APIClient
 import kr.shlim.roomcornermovie.view.HorizontalMarginItemDecoration
+import org.jsoup.Jsoup
 import java.util.concurrent.TimeUnit
+import java.util.function.Function
 
 class MainActivity : AppCompatActivity() {
     val compositeDisposable : CompositeDisposable = CompositeDisposable()
@@ -41,20 +46,22 @@ class MainActivity : AppCompatActivity() {
         val pageTransformer = ViewPager2.PageTransformer { page: View, position: Float ->
             page.translationX = -pageTranslationX * position
             // Next line scales the item's height. You can remove it if you don't want this effect
-            page.scaleY = 1 - (0.25f * Math.abs(position))
+            page.scaleY = 1 - (0.15f * Math.abs(position))
             // If you want a fading effect uncomment the next line:
-            // page.alpha = 0.25f + (1 - abs(position))
+            page.alpha = 0.25f + (1 - Math.abs(position))
         }
         viewpager.setPageTransformer(pageTransformer)
 
 // The ItemDecoration gives the current (centered) item horizontal margin so that
 // it doesn't occupy the whole screen width. Without it the items overlap
-        val itemDecoration =
-            HorizontalMarginItemDecoration(
-                this,
-                R.dimen.viewpager_current_item_horizontal_margin
-            )
-        viewpager.addItemDecoration(itemDecoration)
+//        val itemDecoration =
+//            HorizontalMarginItemDecoration(
+//                this,
+//                R.dimen.viewpager_current_item_horizontal_margin
+//            )
+//        viewpager.addItemDecoration(itemDecoration)
+
+
     }
 
     val movieList = arrayListOf<NaverMovieListDTO>()
@@ -259,10 +266,87 @@ class MainActivity : AppCompatActivity() {
     fun updateList() {
         Logger.d("movieList size : ${movieList.size}")
 
-        viewpager.adapter = MyRecyclerViewAdaper(this, movieList)
+        val defaultImageUrl = "https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode="
 
-        runOnUiThread(Runnable {
-            this.viewpager.adapter?.notifyDataSetChanged()
-        })
+        val t1 = Observable.range(0, movieList.size)
+            .base()
+            .map { it -> movieList.get(it) }
+            .map { it -> it.items.get(0) }
+            .flatMap { getImageUrl(it) }
+            .flatMap { getTitle(it) }
+//            .map { it -> Jsoup.parse(it.title).text() }
+            .subscribe (
+                {
+//                    val code = it.link.substringAfterLast("=")
+//                    val codeUrl = defaultImageUrl + code
+//
+//                    Thread(Runnable {
+//                        var doc = Jsoup.connect(codeUrl).get()
+//                        val element = doc.select("img")
+//
+//                        Logger.d("element : ${element.toString()}")
+//
+//                        val imageUrl = element.get(0).absUrl("src")
+//
+//                        Logger.d("element imageUrl : ${imageUrl}")
+//
+//                        it.image = imageUrl
+//
+//                        it.title = Jsoup.parse(it.title).text()
+//
+//                    }).start()
+                },{
+
+                },{
+                    Logger.d("viewpager start")
+                    viewpager.adapter = MyRecyclerViewAdaper(this, movieList)
+
+                    runOnUiThread(Runnable {
+                        this.viewpager.adapter?.notifyDataSetChanged()
+                    })
+                },{
+
+                }
+            )
+    }
+
+
+    fun getImageUrl(data : NaverMovieItem) : Observable<NaverMovieItem> {
+
+        val defaultImageUrl = "https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode="
+
+        val t1 = Observable.range(0, movieList.size)
+            .base()
+            .map { it -> movieList.get(it) }
+            .map { it -> it.items.get(0) }
+            .map { it -> it.link }
+
+        val t2 = Observable.fromCallable{
+            val code = data.link.substringAfterLast("=")
+            val codeUrl = defaultImageUrl + code
+
+            var doc = Jsoup.connect(codeUrl).get()
+            val element = doc.select("img")
+
+            Logger.d("element : ${element.toString()}")
+
+            val imageUrl = element.get(0).absUrl("src")
+
+            Logger.d("element imageUrl : ${imageUrl}")
+
+            data.image = imageUrl
+            return@fromCallable data
+        }.base()
+
+        return t2
+    }
+
+    fun getTitle(data : NaverMovieItem) :  Observable<NaverMovieItem> {
+        val t2 = Observable.fromCallable{
+            data.title = Jsoup.parse(data.title).text()
+
+            return@fromCallable data
+        }.base()
+        return t2
     }
 }

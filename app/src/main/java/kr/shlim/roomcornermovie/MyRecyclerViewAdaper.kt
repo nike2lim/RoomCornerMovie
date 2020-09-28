@@ -16,6 +16,9 @@ import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.FitCenter
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
@@ -53,18 +56,36 @@ class MyRecyclerViewAdaper(context : Context, val movieInfos : ArrayList<NaverMo
         var imageUrl = ""
 
 
-        Thread(Runnable {
-            var doc = Jsoup.connect(url).get()
-            val element = doc.select("img")
-            imageUrl = element.get(0).absUrl("src")
+//        Thread(Runnable {
+//            var doc = Jsoup.connect(url).get()
+//            val element = doc.select("img")
+//
+//            Logger.d("element : ${element.toString()}")
+//
+//            imageUrl = element.get(0).absUrl("src")
+//
+//            Logger.d("element imageUrl : ${imageUrl}")
+//
+//            (mContext as Activity).runOnUiThread(Runnable {
+//                Glide.with(mContext as Activity).load(imageUrl).transform(FitCenter(), RoundedCorners(100)).into(holder.mImageView)
+//
+//                holder.mTextView.visibility = View.VISIBLE
+//                holder.mTextView.text = item.title
+//
+//            })
+//
+//        }).start()
 
-            (mContext as Activity).runOnUiThread(Runnable {
-                Glide.with(mContext as Activity).load(imageUrl).thumbnail(0.6f).into(holder.mImageView)
-            })
 
-        }).start()
+        (mContext as Activity).runOnUiThread(Runnable {
+            Logger.d("imageUrl : ${item.image}")
+            Glide.with(mContext as Activity).load(item.image).transform(FitCenter(), RoundedCorners(100)).into(holder.mImageView)
 
-        holder.mTextView.text = item.title
+            holder.mTextView.visibility = View.VISIBLE
+            holder.mTextView.text = item.title
+
+        })
+
 
 //        movieName?.get(position).let {
 ////            holder.mImageView.background = mContext?.getDrawable(R.drawable.iphone)
