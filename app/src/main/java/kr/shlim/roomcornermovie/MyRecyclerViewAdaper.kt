@@ -2,41 +2,29 @@ package kr.shlim.roomcornermovie
 
 import android.app.Activity
 import android.content.Context
-import android.graphics.drawable.Drawable
+import android.graphics.Point
+import android.view.Display
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.android.volley.Request
-import com.android.volley.Response
-import com.android.volley.toolbox.StringRequest
-import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.FitCenter
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.load.resource.gif.GifDrawable
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.Target
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.movie_list_item.view.*
-import kr.shlim.roomcornermovie.data.dto.naver.NaverMovieItem
 import kr.shlim.roomcornermovie.data.dto.naver.NaverMovieListDTO
-import kr.shlim.roomcornermovie.network.APIClient
-import org.jsoup.Jsoup
 
-class MyRecyclerViewAdaper(context : Context, val movieInfos : ArrayList<NaverMovieListDTO>) : RecyclerView.Adapter<MyRecyclerViewAdaper.MyViewHolder>() {
+class MyRecyclerViewAdaper(context: Context, val movieInfos: ArrayList<NaverMovieListDTO>) : RecyclerView.Adapter<MyRecyclerViewAdaper.MyViewHolder>() {
 
     val mContext : Context by lazy { context }
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val v = LayoutInflater.from(mContext).inflate(R.layout.movie_list_item, parent, false)
+
         return MyViewHolder(v)
     }
 
@@ -77,9 +65,18 @@ class MyRecyclerViewAdaper(context : Context, val movieInfos : ArrayList<NaverMo
 //        }).start()
 
 
+
         (mContext as Activity).runOnUiThread(Runnable {
             Logger.d("imageUrl : ${item.image}")
-            Glide.with(mContext as Activity).load(item.image).transform(FitCenter(), RoundedCorners(100)).into(holder.mImageView)
+
+
+            Glide.with(mContext as Activity).load(item.image).transform(
+                FitCenter(), RoundedCorners(
+                    100
+                )
+            ).override(holder.mImageView.width, holder.mImageView.height).into(holder.mImageView)
+
+//            holder.mImageView.setBackgroundResource(R.drawable.movie_image)
 
             holder.mTextView.visibility = View.VISIBLE
             holder.mTextView.text = item.title

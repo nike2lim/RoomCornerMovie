@@ -1,9 +1,13 @@
 package kr.shlim.roomcornermovie
 
+import android.graphics.drawable.AnimationDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.widget.ViewPager2
 import com.orhanobut.logger.Logger
 import io.reactivex.Observable
@@ -24,12 +28,14 @@ import org.jsoup.Jsoup
 import java.util.concurrent.TimeUnit
 import java.util.function.Function
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(R.layout.activity_main) {
     val compositeDisposable : CompositeDisposable = CompositeDisposable()
+
+    private val viewMdoel : MainViewModel by viewModels()       // activity-ktx
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
 
         // MyRecyclerViewAdapter is an standard RecyclerView.Adapter :)
 
@@ -50,18 +56,10 @@ class MainActivity : AppCompatActivity() {
             // If you want a fading effect uncomment the next line:
             page.alpha = 0.25f + (1 - Math.abs(position))
         }
+
         viewpager.setPageTransformer(pageTransformer)
-
-// The ItemDecoration gives the current (centered) item horizontal margin so that
-// it doesn't occupy the whole screen width. Without it the items overlap
-//        val itemDecoration =
-//            HorizontalMarginItemDecoration(
-//                this,
-//                R.dimen.viewpager_current_item_horizontal_margin
-//            )
-//        viewpager.addItemDecoration(itemDecoration)
-
-
+        movie_loading.startLoadingAnimation()
+        getMovieList()
     }
 
     val movieList = arrayListOf<NaverMovieListDTO>()
@@ -202,6 +200,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun getMovieList() {
+        movieList.clear()
+
+        val boxOffice = getBoxOffice()
+
+        var index = 0
+
+        boxOffice.toObservable()
+            .map{ it -> it.boxOfficeResult.dailyBoxOfficeList }
+            .repeat(10)
+            .map{ it ->
+                it.get(index++)}
+            .flatMap {
+                Logger.d("it.movieNm : ${it.movieNm}")
+                getNaverAPI(it.movieNm).toObservable().base().take(10)
+            }.base().subscribe(
+                {
+                    Logger.d("naverAPI : ${it.items.get(0).title}")
+                    movieList.add(it)
+                },
+                {
+
+                }, {
+                    updateList()
+                }
+            )
+    }
+
     fun getBoxOffice() : Single<KobisDailyBoxOfficeListDTO>{
         return APIClient.kobisApi.getDailyBoxOffice(
             "0aaff6d6268952be706a0332880380af",
@@ -303,6 +329,8 @@ class MainActivity : AppCompatActivity() {
 
                     runOnUiThread(Runnable {
                         this.viewpager.adapter?.notifyDataSetChanged()
+
+                        movie_loading.stopLoadingAnimation()
                     })
                 },{
 
@@ -311,17 +339,15 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    /**
+     * image url Observable
+     * @param data
+     * @return
+     */
     fun getImageUrl(data : NaverMovieItem) : Observable<NaverMovieItem> {
-
         val defaultImageUrl = "https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode="
 
-        val t1 = Observable.range(0, movieList.size)
-            .base()
-            .map { it -> movieList.get(it) }
-            .map { it -> it.items.get(0) }
-            .map { it -> it.link }
-
-        val t2 = Observable.fromCallable{
+        val imageObservable = Observable.fromCallable{
             val code = data.link.substringAfterLast("=")
             val codeUrl = defaultImageUrl + code
 
@@ -338,15 +364,20 @@ class MainActivity : AppCompatActivity() {
             return@fromCallable data
         }.base()
 
-        return t2
+        return imageObservable
     }
 
+    /**
+     * get title Observable
+     * @param data
+     * @return
+     */
     fun getTitle(data : NaverMovieItem) :  Observable<NaverMovieItem> {
-        val t2 = Observable.fromCallable{
+        val titleObservable = Observable.fromCallable{
             data.title = Jsoup.parse(data.title).text()
 
             return@fromCallable data
         }.base()
-        return t2
+        return titleObservable
     }
 }

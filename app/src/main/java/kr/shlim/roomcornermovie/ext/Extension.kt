@@ -1,5 +1,7 @@
 package kr.shlim.roomcornermovie.ext
 
+import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.request.RequestOptions
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers

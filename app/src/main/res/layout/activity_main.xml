@@ -1,72 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="kr.shlim.roomcornermovie.MainViewModel" />
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
 
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewpager"
-        android:layout_width="400dp"
-        android:layout_height="450dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewpager"
+            android:layout_width="400dp"
+            android:layout_height="450dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/naver_api"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Naver API"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="10dp"
-        app:layout_constraintBottom_toTopOf="@+id/kmdb_api"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:onClick="MainOnClick"/>
+        <Button
+            android:id="@+id/naver_api"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Naver API"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintBottom_toTopOf="@+id/kmdb_api"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:onClick="MainOnClick"
+            android:visibility="gone"/>
 
-    <Button
-        android:id="@+id/kmdb_api"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="KMDB Detail API"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="10dp"
-        app:layout_constraintBottom_toTopOf="@+id/boxoffice_api"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:onClick="MainOnClick"/>
+        <Button
+            android:id="@+id/kmdb_api"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="KMDB Detail API"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintBottom_toTopOf="@+id/boxoffice_api"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:onClick="MainOnClick"
+            android:visibility="gone"/>
 
-    <Button
-        android:id="@+id/boxoffice_api"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="10dp"
-        android:onClick="MainOnClick"
-        android:text="박스오피스 API"
-        app:layout_constraintBottom_toTopOf="@+id/combine_api"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <Button
+            android:id="@+id/boxoffice_api"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:onClick="MainOnClick"
+            android:text="박스오피스 API"
+            app:layout_constraintBottom_toTopOf="@+id/combine_api"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:visibility="gone"/>
 
-    <Button
-        android:id="@+id/combine_api"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="10dp"
-        android:onClick="MainOnClick"
-        android:text="Combine API"
-        app:layout_constraintBottom_toTopOf="@+id/flatmap_api"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <Button
+            android:id="@+id/combine_api"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:onClick="MainOnClick"
+            android:text="Combine API"
+            app:layout_constraintBottom_toTopOf="@+id/flatmap_api"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:visibility="gone"/>
 
-    <Button
-        android:id="@+id/flatmap_api"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="FlatMap API"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:onClick="MainOnClick"/>
+        <Button
+            android:id="@+id/flatmap_api"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FlatMap API"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:onClick="MainOnClick"
+            android:visibility="gone"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <kr.shlim.roomcornermovie.view.MovieLoadingView
+            android:id="@+id/movie_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/viewpager"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
