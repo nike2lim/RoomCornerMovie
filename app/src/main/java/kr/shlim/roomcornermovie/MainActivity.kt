@@ -20,6 +20,7 @@ import kr.shlim.roomcornermovie.data.dto.kobis.DailyBoxOffice
 import kr.shlim.roomcornermovie.data.dto.kobis.KobisDailyBoxOfficeListDTO
 import kr.shlim.roomcornermovie.data.dto.naver.NaverMovieItem
 import kr.shlim.roomcornermovie.data.dto.naver.NaverMovieListDTO
+import kr.shlim.roomcornermovie.databinding.ActivityMainBinding
 import kr.shlim.roomcornermovie.ext.base
 import kr.shlim.roomcornermovie.ext.plusAssign
 import kr.shlim.roomcornermovie.network.APIClient
@@ -28,7 +29,7 @@ import org.jsoup.Jsoup
 import java.util.concurrent.TimeUnit
 import java.util.function.Function
 
-class MainActivity : AppCompatActivity(R.layout.activity_main) {
+class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(R.layout.activity_main, MainViewModel::class) {
     val compositeDisposable : CompositeDisposable = CompositeDisposable()
 
     private val viewMdoel : MainViewModel by viewModels()       // activity-ktx
