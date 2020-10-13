@@ -4,15 +4,15 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    compileSdkVersion build_versions.compile_sdk
+    buildToolsVersion build_versions.build_tools
 
     defaultConfig {
-        applicationId "kr.shlim.roomcornermovie"
-        minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
+        applicationId build_versions.appId
+        minSdkVersion build_versions.min_sdk
+        targetSdkVersion build_versions.target_sdk
+        versionCode build_versions.versionCode
+        versionName build_versions.versionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -26,12 +26,20 @@ android {
         dataBinding true
     }
 
+    signingConfigs {
+        release {
+            storeFile file('keystore/roomcornermovie.keystore')
+            storePassword "Secret1054!"
+            keyAlias "roomcornermovie"
+            keyPassword "Secret1054!"
+        }
+    }
 
     buildTypes {
         release {
             minifyEnabled false
 
-
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -49,58 +57,44 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.3.0'
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    implementation 'androidx.cardview:cardview:1.0.0'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation deps.kotlin.stdlib
 
-
-
-    // AAC
-//    implementation ""
-
+    // AndroidX
+    implementation deps.androidx.core_ktx
+    implementation deps.androidx.appcompat
+    implementation deps.androidx.constraintlayout
+    implementation deps.androidx.recyclerview
+    implementation deps.androidx.viewpager
+    implementation deps.androidx.activity_ktx
 
     // Retroift2
-    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"              // last-version https://github.com/square/retrofit/releases
-    implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"        // last-version https://search.maven.org/search?q=g:com.squareup.retrofit2%20a:converter-gson
-    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"       // last-version https://search.maven.org/search?q=g:com.squareup.retrofit2%20a:adapter-rxjava2
-    implementation "com.squareup.retrofit2:converter-scalars:$retrofit_version"     //
+    implementation deps.retrofit.runtime
+    implementation deps.retrofit.gson
+    implementation deps.retrofit.rxjava_adapter
+    implementation deps.retrofit.scalars
 
     // Okhttp
-    implementation "com.squareup.okhttp3:okhttp:$okhttp_version"                    // https://github.com/square/okhttp
-    implementation "com.squareup.okhttp3:logging-interceptor:4.8.1"                 // https://github.com/square/okhttp/tree/master/okhttp-logging-interceptor
-    implementation "com.squareup.okhttp3:okhttp-urlconnection:4.8.1"                // https://github.com/square/okhttp/tree/master/okhttp-urlconnection
+    implementation deps.okhttp.runtime
+    implementation deps.okhttp.intercepter
+    implementation deps.okhttp.urlconnection
 
     // RxJava
-    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-
-
-    // ViewPager2
-    implementation 'androidx.viewpager2:viewpager2:1.0.0'
-
+    implementation deps.rxjava.rxandroid
 
     // Glide
-    implementation 'com.github.bumptech.glide:glide:4.11.0'                          // https://github.com/bumptech/glide
-
-    // Volley
-    implementation 'com.android.volley:volley:1.1.1'                                // https://developer.android.com/training/volley
-
+    implementation deps.glide.runtime
 
     // JSOUP
-    implementation 'org.jsoup:jsoup:1.11.3'                                         // https://github.com/jhy/jsoup
-
+    implementation deps.util.jsoup
 
     // Log
-    implementation 'com.orhanobut:logger:2.2.0'                                     // https://github.com/orhanobut/logger
+    implementation deps.util.log
 
-    // KTX
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0"               // https://developer.android.com/kotlin/ktx/extensions-list
-    implementation "androidx.activity:activity-ktx:1.1.0"                           // https://developer.android.com/kotlin/ktx/extensions-list
+    // lifecycle
+    implementation deps.lifecycle.viewmodel_ktx
 
-
+    // Test
+    testImplementation deps.test.junit
+    androidTestImplementation deps.test.runner
+    androidTestImplementation deps.test.espresso
 }
