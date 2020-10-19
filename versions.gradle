@@ -69,6 +69,11 @@ build_versions.min_sdk = 21
 build_versions.target_sdk = 29
 build_versions.compile_sdk = 29
 build_versions.build_tools = "29.0.3"
-build_versions.versionCode = 001
 build_versions.versionName = '0.0.1'
+
+def (major, minor, patch) = build_versions.versionName.toLowerCase().replaceAll('-', '').tokenize('.')
+(major, minor, patch) = [major, minor, patch].collect { it.toInteger() }
+build_versions.versionCode = (major * 10000) + (minor * 100) + (patch)
+
+
 ext.build_versions = build_versions

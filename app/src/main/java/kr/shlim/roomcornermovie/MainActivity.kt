@@ -26,6 +26,7 @@ import kr.shlim.roomcornermovie.ext.plusAssign
 import kr.shlim.roomcornermovie.network.APIClient
 import kr.shlim.roomcornermovie.view.HorizontalMarginItemDecoration
 import org.jsoup.Jsoup
+import org.jsoup.select.Evaluator
 import java.util.concurrent.TimeUnit
 import java.util.function.Function
 
@@ -243,7 +244,10 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(R.layout.a
     }
 
     fun getNaverAPI(title: String) : Single<NaverMovieListDTO> {
-        return APIClient.naverApi.getMovieList("qzbpCZyFMh8t4evQM71u", "4kJ0rub2ub", title, 100)
+        val clientId: String = BuildConfig.clientId
+        val clientSecret: String = BuildConfig.clientSecret
+//        return APIClient.naverApi.getMovieList("qzbpCZyFMh8t4evQM71u", "4kJ0rub2ub", title, 100)
+        return APIClient.naverApi.getMovieList(clientId, clientSecret, title, 100)
 
     }
 

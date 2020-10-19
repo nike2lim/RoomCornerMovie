@@ -3,6 +3,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
+def getPropertis(){
+    def secretProperties = rootProject.file('secrets.properties')
+
+    def Properties props = new Properties()
+    props.load(new FileInputStream(secretProperties))
+    return props
+}
+
 android {
     compileSdkVersion build_versions.compile_sdk
     buildToolsVersion build_versions.build_tools
@@ -14,7 +22,14 @@ android {
         versionCode build_versions.versionCode
         versionName build_versions.versionName
 
+        resValue "string", "app_name", "방구석 영화"
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+
+        buildConfigField("String", "clientId", getPropertis()['X-Naver-Client-Id'])
+        buildConfigField("String", "clientSecret", getPropertis()['X-Naver-Client-Secret'])
+
 
     }
 
@@ -29,18 +44,30 @@ android {
     signingConfigs {
         release {
             storeFile file('keystore/roomcornermovie.keystore')
-            storePassword "Secret1054!"
-            keyAlias "roomcornermovie"
-            keyPassword "Secret1054!"
+            storePassword getPropertis()['keyPassword']
+            keyAlias getPropertis()['keyAlias']
+            keyPassword getPropertis()['keyPassword']
         }
     }
 
     buildTypes {
         release {
+            debuggable false
             minifyEnabled false
 
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+            minifyEnabled false
+
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            outputFileName = "RoomCornerMovie-" + "${variant.name}-${variant.versionName}.apk"
         }
     }
 
@@ -53,6 +80,8 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+
 }
 
 dependencies {
