@@ -18,7 +18,7 @@ import kotlinx.android.synthetic.main.movie_list_item.view.*
 import kr.shlim.roomcornermovie.R
 import kr.shlim.roomcornermovie.model.naver.NaverMovieListDTO
 
-class MyRecyclerViewAdaper(context: Context, val movieInfos: ArrayList<NaverMovieListDTO>, val itemClick : (v :View, imgUrl : String) -> Unit) : RecyclerView.Adapter<MyRecyclerViewAdaper.MyViewHolder>() {
+class MovieRecyclerViewAdaper(context: Context, var movieInfos: ArrayList<NaverMovieListDTO>? , val itemClick : (v :View, imgUrl : String?) -> Unit) : RecyclerView.Adapter<MovieRecyclerViewAdaper.MyViewHolder>() {
 
     val mContext : Context by lazy { context }
 
@@ -30,67 +30,34 @@ class MyRecyclerViewAdaper(context: Context, val movieInfos: ArrayList<NaverMovi
     }
 
     override fun getItemCount(): Int {
-        return movieInfos?.size
+        return movieInfos?.size ?: 0
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         Logger.d("onBindViewHolder position : $position")
-        val movieInfo = movieInfos.get(position)
-        val item = movieInfo.items.get(0)
-
-        val code = item.link.substringAfterLast("=")
-        val url = "https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode=" + code
-
-
-        var imageUrl = ""
-
-
-//        Thread(Runnable {
-//            var doc = Jsoup.connect(url).get()
-//            val element = doc.select("img")
-//
-//            Logger.d("element : ${element.toString()}")
-//
-//            imageUrl = element.get(0).absUrl("src")
-//
-//            Logger.d("element imageUrl : ${imageUrl}")
-//
-//            (mContext as Activity).runOnUiThread(Runnable {
-//                Glide.with(mContext as Activity).load(imageUrl).transform(FitCenter(), RoundedCorners(100)).into(holder.mImageView)
-//
-//                holder.mTextView.visibility = View.VISIBLE
-//                holder.mTextView.text = item.title
-//
-//            })
-//
-//        }).start()
-
-
+        val movieInfo = movieInfos?.get(position)
+        val item = movieInfo?.items?.get(0)
 
         (mContext as Activity).runOnUiThread(Runnable {
-            Logger.d("imageUrl : ${item.image}")
+            Logger.d("imageUrl : ${item?.image}")
 
-//            holder.mImageView.setBackgroundResource(R.drawable.movie_slate)
-
-            val t = Glide.get(mContext as Activity).setMemoryCategory(MemoryCategory.HIGH)
-            val requestBuilder = Glide.with(mContext as Activity).load(item.image).transform(
+            Glide.with(mContext as Activity).load(item?.image).transform(
                 FitCenter(), RoundedCorners(
                     100
                 )
             ).placeholder(R.drawable.movie_slate_new)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .skipMemoryCache(true)
-//                .onlyRetrieveFromCache(true)
                 .override(holder.mImageView.width, holder.mImageView.height).into(holder.mImageView)
 
             holder.mTextView.visibility = View.VISIBLE
-            holder.mTextView.text = item.title
+            holder.mTextView.text = item?.title
 
         })
 
         holder.mImageView.setOnClickListener{
 
-            itemClick(it, item.image)
+            itemClick(it, item?.image)
         }
     }
 
@@ -105,6 +72,22 @@ class MyRecyclerViewAdaper(context: Context, val movieInfos: ArrayList<NaverMovi
 
     }
 
+    fun setData(list : ArrayList<NaverMovieListDTO>) {
+        movieInfos = list
+        notifyDataSetChanged()
+    }
 
+    fun addData(data : NaverMovieListDTO) {
+        movieInfos?.add(data)
+        notifyItemChanged((itemCount - 1) ?: 0)
+    }
+
+    fun refreshAdapter(index : Int) {
+        notifyItemChanged(index)
+    }
+
+    fun movieListRemvoeAll() {
+        movieInfos?.removeAll(movieInfos!!)
+    }
 }
 

@@ -11,35 +11,30 @@ import com.afollestad.date.dayOfMonth
 import com.afollestad.date.month
 import com.afollestad.date.year
 import com.orhanobut.logger.Logger
-import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 import kr.shlim.roomcornermovie.BaseActivity
-import kr.shlim.roomcornermovie.BuildConfig
 import kr.shlim.roomcornermovie.R
-import kr.shlim.roomcornermovie.model.DailyBoxOffice
-import kr.shlim.roomcornermovie.model.KobisDailyBoxOfficeListDTO
-import kr.shlim.roomcornermovie.model.naver.NaverMovieItem
-import kr.shlim.roomcornermovie.model.naver.NaverMovieListDTO
 import kr.shlim.roomcornermovie.databinding.ActivityMainBinding
-import kr.shlim.roomcornermovie.ext.base
-import kr.shlim.roomcornermovie.ext.plusAssign
-import kr.shlim.roomcornermovie.network.APIClient
+import kr.shlim.roomcornermovie.model.naver.NaverMovieListDTO
 import kr.shlim.roomcornermovie.view.dialog.DatePickerDialogFragment
 import kr.shlim.roomcornermovie.viewmodel.MainViewModel
-import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
 import java.util.*
 
 
 class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
     R.layout.activity_main, MainViewModel::class) {
+    
+    private val TAG = MainActivity::class.java.simpleName
+    
     val compositeDisposable : CompositeDisposable = CompositeDisposable()
 
-    val maxCount : Int = 20
+    private val viewMdoel : MainViewModel by viewModels()                       // activity-ktx
 
-    private val viewMdoel : MainViewModel by viewModels()       // activity-ktx
+    private lateinit var mMovieAdapter : MovieRecyclerViewAdaper
+
+    var index = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Logger.d("[timecheck] MainActivity onCrete Start")
@@ -52,6 +47,17 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
         viewpager.clipChildren = false
         viewpager.clipToPadding = false
 
+
+
+        mMovieAdapter =  MovieRecyclerViewAdaper(this, arrayListOf<NaverMovieListDTO>()) { view, url ->
+            val pair_thumb = Pair(view, view.transitionName)
+            val optionsCompat=ActivityOptionsCompat.makeSceneTransitionAnimation(this@MainActivity, pair_thumb)
+
+            val intent = Intent(this, MovieDetailActivity::class.java)
+            intent.putExtra("imgUrl", url)
+            startActivity(intent, optionsCompat.toBundle())
+        }
+        viewpager.adapter = mMovieAdapter
 
 
 // Add a PageTransformer that translates the next and previous items horizontally
@@ -72,18 +78,16 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
         val currentDate = getCurrentYYMMDD()
         date_edit.setText(currentDate)
         date_edit.setOnClickListener {
+
+            mMovieAdapter.movieListRemvoeAll()
+            index = 0
+
             val editDate = date_edit.text.toString()
-
-            val dateType = SimpleDateFormat("yyyy-MM-dd", Locale(Locale.KOREAN.language, Locale.KOREAN.country)).parse(editDate)
             val cal = Calendar.getInstance()
-
             val t = editDate.split("-")
-
             cal.set(t.get(0).toInt(), t.get(1).toInt(), t.get(2).toInt())
 
             val callback = fun (year : Int, month : Int, day : Int){
-//                Toast.makeText(this, "$year, $month, $day", Toast.LENGTH_SHORT).show()
-
                 val cal = Calendar.getInstance()
                 cal.set(year, month, day)
 
@@ -93,363 +97,66 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
                 val result = simpleDateFormat.format(cal.time)
                 val targetDt = simpleDateFormatRequest.format(cal.time)
                 date_edit.setText(result)
-                getMovieList(targetDt)
+
+                viewMdoel.getMovieList(targetDt)
             }
 
             DatePickerDialogFragment(cal.year, cal.month-1, cal.dayOfMonth, callback).show(supportFragmentManager, "")
         }
 
         val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DATE , -1);                           // 오늘날짜는 팅아직 영화진응위원회에서 값이 안오기 때문에 전날짜 셋팅
         val simpleDateFormat = SimpleDateFormat("yyyyMMdd")
         val targetDt = simpleDateFormat.format(calendar.time)
-        getMovieList(targetDt)
 
+        viewMdoel.movieList.observe(this, androidx.lifecycle.Observer { data ->
+            adapterUpdate(data as ArrayList<NaverMovieListDTO>)
+
+            val msg = data.toString()
+
+            val title = data.get(0).items.get(0).title
+            Logger.log(4, TAG, "onCreate() observe called with: data = [$title], {${data.size}", null)
+            }
+        )
+
+
+        viewMdoel.movieItemList.observe(this, androidx.lifecycle.Observer {
+
+            val title = it.get(0).title
+            Logger.log(4, TAG, "onCreate() observe movieItemList : data = [$title]", null)
+            Logger.log(4, TAG, "onCreate() observe movieItemList : data = [$title], {${it.size-1}", null)
+
+            mMovieAdapter.refreshAdapter(index)
+            index++
+        })
+
+        viewMdoel.getMovieList(targetDt)
         Logger.d("[timecheck] MainActivity onCrete end")
-
-
     }
-
-
-    val movieList = arrayListOf<NaverMovieListDTO>()
 
     fun MainOnClick(v: View) {
         when(v.id) {
             R.id.naver_api -> {
-//                val query = URLEncoder.encode("주식", "UTF-8")
-                val query = "주식"
-                compositeDisposable += APIClient.naverApi.getMovieList(
-                    "qzbpCZyFMh8t4evQM71u",
-                    "4kJ0rub2ub",
-                    query,
-                    100
-                )
-                    .base()
-                    .subscribe(
-                        {
-                            Logger.d("it : ${it.toString()}")
-
-                        },
-                        {
-                            Logger.e("naver getMovieList Error : ${it.message}")
-                        }
-                    )
             }
             R.id.kmdb_api -> {
-                val title = "주식"
-                compositeDisposable += APIClient.kmdbApi.getMovieList(
-                    "kmdb_new2",
-                    "N",
-                    "EL0V4K1532U77G39NPKY",
-                    title
-                )
-                    .base()
-                    .subscribe(
-                        {
-                            Logger.d("kmdb it : ${it.toString()}")
-
-                        },
-                        {
-                            Logger.e("kmdb getMovieList Error : ${it.localizedMessage}")
-                        }
-                    )
-
             }
             R.id.boxoffice_api -> {
-                val title = "주식"
-                compositeDisposable += APIClient.kobisApi.getDailyBoxOffice(
-                    "0aaff6d6268952be706a0332880380af",
-                    "20200830",
-                    10
-                )
-                    .base()
-                    .subscribe(
-                        {
-                            Logger.d("kobis it : ${it.toString()}")
-                        },
-                        {
-                            Logger.e("kobis getDailyBoxOffice Error : ${it.message}")
-                        }
-                    )
-
             }
 
             R.id.combine_api -> {
-                val t1 = getBoxOffice("20200830")
-                val t2 = getNaverAPI()
-//                val t3 = Single.just(1)
-//                val t4 = Single.just(2)
-//                Single.zip(t3, t4, BiFunction<Int, Int, String> { t1, t2 -> " $t1 $t2"})
-
-                Logger.d("Combine API Test!!!!!!!")
-
-//                Single.zip(t1, t2, BiFunction<KobisDailyBoxOfficeListDTO, NaverMovieListDTO, String>
-//                { t1, t2 -> " ${t1.toString()} ${t2.toString()}"})
-//                    .base()
-//                    .subscribe(
-//                        {
-//                            Logger.d("Combine : $it")
-//                        }
-//                        ,{
-//                            Logger.e("Combine Error : ${it.message}")
-//                        }
-//                    )
             }
 
             R.id.flatmap_api -> {
-                movieList.clear()
-
-                val boxOffice = getBoxOffice("20200830")
-
-                var index = 0
-
-                boxOffice.toObservable()
-                    .map{ it -> it.boxOfficeResult.dailyBoxOfficeList }
-                    .repeat(10)
-                    .map{ it ->
-                        it.get(index++)}
-                    .flatMap {
-                        Logger.d("it.movieNm : ${it.movieNm}")
-                        getNaverAPI(it.movieNm).toObservable().base().take(10)
-                    }.base().subscribe(
-                        {
-                            Logger.d("naverAPI : ${it.items.get(0).title}")
-                            movieList.add(it)
-                        },
-                        {
-
-                        }, {
-                            updateList()
-                        }
-                    )
-//                getBoxOffice().base().map { it -> it.boxOfficeResult.dailyBoxOfficeList }
-//                    .subscribe({
-//                        for (i in 0..it.size - 1) {
-//                            val data = it.get(i)
-//                            Logger.d("rnumb : ${data.rnum}, rank :  ${data.rank}, movieNm :  ${data.movieNm}")
-//                        }
-//
-//                        it.forEach {
-//
-//                            getNaverAPI(it.movieNm).base().subscribe({
-//                                Logger.d("naverAPI : ${it.items.get(0).title}")
-//                                movieList.add(it)
-//                                updateList()
-//
-//                            }, {
-//                                Logger.e("NaverAPI Exception : ${it.localizedMessage}")
-//
-//                            })
-//                        }
-//
-//                    }, {
-//                        Logger.e("getBoxOffice fail : ${it.message}")
-//                    })
             }
         }
     }
 
-    fun getMovieList(targetDt : String) {
-        movie_loading.startLoadingAnimation()
-
-        movieList.clear()
-
-        val boxOffice = getBoxOffice(targetDt)
-
-        var index = 0
-
-        boxOffice.toObservable()
-            .map{ it -> it.boxOfficeResult.dailyBoxOfficeList }
-            .repeat(maxCount.toLong())
-            .map{ it ->
-                it.get(index++)}
-            .flatMap {
-                Logger.d("it.movieNm : ${it.movieNm}")
-                getNaverAPI(it.movieNm).toObservable().base().take(maxCount.toLong())
-            }.base().subscribe(
-                {
-                    Logger.d("naverAPI : ${it.items.get(0).title}")
-                    movieList.add(it)
-                },
-                {
-                    Logger.e("naverAPI exception : ${it.message}")
-                    updateList()
-                }, {
-                    updateList()
-                }
-            )
-    }
-
-    fun getBoxOffice(targetDt : String) : Single<KobisDailyBoxOfficeListDTO>{
-        val apiKey = BuildConfig.kobisApiKey
-        return APIClient.kobisApi.getDailyBoxOffice(
-            apiKey,
-            targetDt,
-            maxCount
-        )
-    }
-
-    fun getNaverAPI() : Single<NaverMovieListDTO> {
-        val query = "주식"
-        return APIClient.naverApi.getMovieList("qzbpCZyFMh8t4evQM71u", "4kJ0rub2ub", query, 100)
-    }
-
-    fun getNaverAPI(title: String) : Single<NaverMovieListDTO> {
-        val clientId: String = BuildConfig.clientId
-        val clientSecret: String = BuildConfig.clientSecret
-//        return APIClient.naverApi.getMovieList("qzbpCZyFMh8t4evQM71u", "4kJ0rub2ub", title, 100)
-        return APIClient.naverApi.getMovieList(clientId, clientSecret, title, 100)
-
-    }
-
-    fun getNaverAPI(tt: KobisDailyBoxOfficeListDTO) : Single<NaverMovieListDTO> {
-        val query = "주식"
-
-        val obser1 = Observable.just("1", "2", "3", "4")
-        val obser2 = Observable.just("5", "6", "7", "8")
-
-
-        val temp = tt.boxOfficeResult
-        for(item in temp.dailyBoxOfficeList) {
-
-            return APIClient.naverApi.getMovieList(
-                "qzbpCZyFMh8t4evQM71u",
-                "4kJ0rub2ub",
-                item.movieNm,
-                100
-            )
-        }
-        return APIClient.naverApi.getMovieList("qzbpCZyFMh8t4evQM71u", "4kJ0rub2ub", query, 100)
-
-    }
-
-    fun getNaverAPI(t: List<DailyBoxOffice>) : Single<NaverMovieListDTO> {
-
-        Logger.d("getNaverAPI List")
-        val query = t.get(0).movieNm
-
-        Logger.d("getNaverAPI List query : {$query}")
-        for(item in t) {
-
-            Logger.d("getNaverAPI List query : ${item.movieNm}")
-            return APIClient.naverApi.getMovieList(
-                "qzbpCZyFMh8t4evQM71u",
-                "4kJ0rub2ub",
-                item.movieNm,
-                100
-            )
-        }
-        return Single.create {  }
-
-//        return Single<NaverMovieListDTO>().a
-    }
-
-
-    fun updateList() {
-        Logger.d("movieList size : ${movieList.size}")
-
-        val defaultImageUrl = "https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode="
-
-        val t1 = Observable.range(0, movieList.size)
-            .base()
-            .map { it -> movieList.get(it) }
-            .map { it -> it.items.get(0) }
-            .flatMap { getImageUrl(it) }
-            .flatMap { getTitle(it) }
-//            .map { it -> Jsoup.parse(it.title).text() }
-            .subscribe (
-                {
-//                    val code = it.link.substringAfterLast("=")
-//                    val codeUrl = defaultImageUrl + code
-//
-//                    Thread(Runnable {
-//                        var doc = Jsoup.connect(codeUrl).get()
-//                        val element = doc.select("img")
-//
-//                        Logger.d("element : ${element.toString()}")
-//
-//                        val imageUrl = element.get(0).absUrl("src")
-//
-//                        Logger.d("element imageUrl : ${imageUrl}")
-//
-//                        it.image = imageUrl
-//
-//                        it.title = Jsoup.parse(it.title).text()
-//
-//                    }).start()
-                },{
-
-                },{
-                    Logger.d("viewpager start")
-                    viewpager.adapter =
-                        MyRecyclerViewAdaper(
-                            this,
-                            movieList
-                        ) { view, url ->
-
-//                            val pair_thumb = Pair(view, view.getTransitionName())
-                            val pair_thumb = Pair(view, view.transitionName)
-                            val optionsCompat=ActivityOptionsCompat.makeSceneTransitionAnimation(this@MainActivity, pair_thumb)
-
-                            val intent = Intent(this, MovieDetailActivity::class.java)
-                            intent.putExtra("imgUrl", url)
-                            startActivity(intent, optionsCompat.toBundle())
-//                            startActivity(intent)
-
-                        }
-
-                    runOnUiThread(Runnable {
-                        this.viewpager.adapter?.notifyDataSetChanged()
-
-                        movie_loading.stopLoadingAnimation()
-                    })
-                },{
-
-                }
-            )
-    }
-
-
     /**
-     * image url Observable
-     * @param data
-     * @return
+     *
+     * @param list
      */
-    fun getImageUrl(data : NaverMovieItem) : Observable<NaverMovieItem> {
-        val defaultImageUrl = "https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode="
-
-        val imageObservable = Observable.fromCallable{
-            val code = data.link.substringAfterLast("=")
-            val codeUrl = defaultImageUrl + code
-
-            var doc = Jsoup.connect(codeUrl).get()
-            val element = doc.select("img")
-
-            Logger.d("element : ${element.toString()}")
-
-            if(false == element.isEmpty())  {
-                val imageUrl = element.get(0).absUrl("src")
-                Logger.d("element imageUrl : ${imageUrl}")
-                data.image = imageUrl
-            }
-
-            return@fromCallable data
-        }.base()
-
-        return imageObservable
-    }
-
-    /**
-     * get title Observable
-     * @param data
-     * @return
-     */
-    fun getTitle(data : NaverMovieItem) :  Observable<NaverMovieItem> {
-        val titleObservable = Observable.fromCallable{
-            data.title = Jsoup.parse(data.title).text()
-
-            return@fromCallable data
-        }.base()
-        return titleObservable
+    fun adapterUpdate(list : ArrayList<NaverMovieListDTO>) {
+        mMovieAdapter.addData(list.get(0))
     }
 
     /**
@@ -458,7 +165,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
     fun getCurrentYYMMDD() : String {
 
         val calendar = Calendar.getInstance()
-
+        calendar.add(Calendar.DATE , -1);                           // 오늘날짜는 팅아직 영화진응위원회에서 값이 안오기 때문에 전날짜 셋팅
         val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd")
         val result = simpleDateFormat.format(calendar.time)
         return result
