@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+
+
+-dontobfuscate
+-keepattributes SourceFile,LineNumberTable
+
+-dontwarn okhttp3.internal.platform.ConscryptPlatform
+
+-keep class kr.shlim.roomcornermovie.data.remote.dto** { *; }

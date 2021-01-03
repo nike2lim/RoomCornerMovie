@@ -6,9 +6,12 @@ import com.orhanobut.logger.FormatStrategy
 import com.orhanobut.logger.Logger
 import com.orhanobut.logger.PrettyFormatStrategy
 
+
 class RoomCornerMovieApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+
+        Logger.d("[timecheck] RoomCornerMovieApplication onCrete start")
 
         val formatStrategy: FormatStrategy = PrettyFormatStrategy.newBuilder()
             .showThreadInfo(false) // (Optional) Whether to show thread info or not. Default true

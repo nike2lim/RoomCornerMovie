@@ -1,7 +1,10 @@
+import org.gradle.internal.os.OperatingSystem
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.gms.google-services'
 
 def getPropertis(){
     def secretProperties = rootProject.file('secrets.properties')
@@ -26,16 +29,12 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-
+        buildConfigField("String", "kobisApiKey", getPropertis()['kobisApiKey'])
         buildConfigField("String", "clientId", getPropertis()['X-Naver-Client-Id'])
         buildConfigField("String", "clientSecret", getPropertis()['X-Naver-Client-Secret'])
 
 
     }
-
-//    dataBinding {
-//        enabled = true
-//    }
 
     buildFeatures {
         dataBinding true
@@ -53,7 +52,7 @@ android {
     buildTypes {
         release {
             debuggable false
-            minifyEnabled false
+            minifyEnabled true
 
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -61,19 +60,50 @@ android {
         debug {
             debuggable true
             minifyEnabled false
+        }
+    }
 
+    task checkWin () {
+        if(OperatingSystem.current().isWindows()) {
+            println "**** Windows"
+        }else if(OperatingSystem.current().isMacOsX()) {
+            println "**** MAC"
         }
     }
 
     applicationVariants.all { variant ->
+        println "${variant.outputs[0].outputFile} TTT"
+        println "variantName : ${variant.name} "
+
         variant.outputs.all { output ->
             outputFileName = "RoomCornerMovie-" + "${variant.name}-${variant.versionName}.apk"
+
+            println "${System.properties['user.home']}/Desktop/"
+
+            def copyTask = project.tasks.create("copy${variant.name}", Copy)
+            copyTask.from(variant.outputs[0].outputFile)
+            copyTask.into("${System.properties['user.home']}/Desktop/")
+
+
+            copyTask.doFirst {
+                println "singleFileName : ${source.singleFile.name}"
+                println "destinationDir : ${destinationDir}"
+
+                println "copy from ${source.singleFile.name} to $destinationDir"
+            }
+
+//            checkWin
+
+            println "completed ${outputFileName} output apk "
         }
     }
 
+
+
+
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     // kotlin ktx
@@ -82,7 +112,10 @@ android {
     }
 
 
+
 }
+
+
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
@@ -95,6 +128,8 @@ dependencies {
     implementation deps.androidx.recyclerview
     implementation deps.androidx.viewpager
     implementation deps.androidx.activity_ktx
+    implementation deps.androidx.cardview
+    implementation deps.androidx.startup_runtime
 
     // Retroift2
     implementation deps.retrofit.runtime
@@ -121,6 +156,15 @@ dependencies {
 
     // lifecycle
     implementation deps.lifecycle.viewmodel_ktx
+
+
+    // view
+    implementation deps.view.datepicker
+
+    // firebase
+    implementation platform(deps.firebase.bom)
+    implementation deps.firebase.analytics
+    implementation deps.firebase.remoteconfig
 
     // Test
     testImplementation deps.test.junit

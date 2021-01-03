@@ -18,3 +18,5 @@ operator fun CompositeDisposable.plusAssign(d: Disposable) {
 fun <T> Observable<T>.base() = subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
 fun <T> Single<T>.base() = subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+
+

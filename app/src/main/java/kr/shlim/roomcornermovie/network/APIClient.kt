@@ -1,17 +1,15 @@
 package kr.shlim.roomcornermovie.network
 
-import kr.shlim.roomcornermovie.BuildConfig
+import kr.shlim.roomcornermovie.network.api.KMDBApi
+import kr.shlim.roomcornermovie.network.api.KobisApi
+import kr.shlim.roomcornermovie.network.api.NaverApi
 import okhttp3.JavaNetCookieJar
 import okhttp3.OkHttpClient
-import okhttp3.internal.authenticator.JavaNetAuthenticator
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.net.CookieHandler
 import java.net.CookieManager
-import java.net.HttpCookie
 
 object APIClient {
 

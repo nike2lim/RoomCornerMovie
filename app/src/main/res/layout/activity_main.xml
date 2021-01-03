@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="kr.shlim.roomcornermovie.MainViewModel" />
+            type="kr.shlim.roomcornermovie.viewmodel.MainViewModel" />
 
     </data>
 
@@ -14,8 +14,30 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/black"
-        tools:context=".MainActivity">
+        tools:context=".view.ui.MainActivity">
 
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:textSize="22dp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:text="@string/boxoffice"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/date_edit"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:focusable="false"
+            android:textColor="@android:color/white"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewpager"
@@ -30,25 +52,25 @@
             android:id="@+id/naver_api"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Naver API"
             android:layout_marginRight="10dp"
             android:layout_marginBottom="10dp"
-            app:layout_constraintBottom_toTopOf="@+id/kmdb_api"
-            app:layout_constraintEnd_toEndOf="parent"
             android:onClick="MainOnClick"
-            android:visibility="gone"/>
+            android:text="Naver API"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/kmdb_api"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <Button
             android:id="@+id/kmdb_api"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="KMDB Detail API"
             android:layout_marginRight="10dp"
             android:layout_marginBottom="10dp"
-            app:layout_constraintBottom_toTopOf="@+id/boxoffice_api"
-            app:layout_constraintEnd_toEndOf="parent"
             android:onClick="MainOnClick"
-            android:visibility="gone"/>
+            android:text="KMDB Detail API"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/boxoffice_api"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <Button
             android:id="@+id/boxoffice_api"
@@ -57,9 +79,9 @@
             android:layout_marginRight="10dp"
             android:onClick="MainOnClick"
             android:text="박스오피스 API"
+            android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@+id/combine_api"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:visibility="gone"/>
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <Button
             android:id="@+id/combine_api"
@@ -68,23 +90,23 @@
             android:layout_marginRight="10dp"
             android:onClick="MainOnClick"
             android:text="Combine API"
+            android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@+id/flatmap_api"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:visibility="gone"/>
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <Button
             android:id="@+id/flatmap_api"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="FlatMap API"
             android:layout_marginRight="10dp"
             android:layout_marginBottom="10dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             android:onClick="MainOnClick"
-            android:visibility="gone"/>
+            android:text="FlatMap API"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <kr.shlim.roomcornermovie.view.MovieLoadingView
+        <kr.shlim.roomcornermovie.view.custom.MovieLoadingView
             android:id="@+id/movie_loading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -94,10 +116,11 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
+            android:id="@+id/button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ViewModel Test"
             android:onClick="@{viewModel::onButtonClick}"
+            android:text="ViewModel Test"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
