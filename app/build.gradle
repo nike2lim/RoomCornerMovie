@@ -29,9 +29,21 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "kobisApiKey", getPropertis()['kobisApiKey'])
-        buildConfigField("String", "clientId", getPropertis()['X-Naver-Client-Id'])
-        buildConfigField("String", "clientSecret", getPropertis()['X-Naver-Client-Secret'])
+//        buildConfigField("String", "kobisApiKey", getPropertis()['kobisApiKey'])
+//        buildConfigField("String", "clientId", getPropertis()['X-Naver-Client-Id'])
+//        buildConfigField("String", "clientSecret", getPropertis()['X-Naver-Client-Secret'])
+
+//        kobisApiKey="0aaff6d6268952be706a0332880380af"
+//        X-Naver-Client-Id="qzbpCZyFMh8t4evQM71u"
+//        X-Naver-Client-Secret="4kJ0rub2ub"
+//
+//        keyAlias=roomcornermovie
+//        keyPassword=Secret1054!
+
+        buildConfigField("String", "kobisApiKey", '"0aaff6d6268952be706a0332880380af"')
+        buildConfigField("String", "clientId", '"qzbpCZyFMh8t4evQM71u"')
+        buildConfigField("String", "clientSecret", '"4kJ0rub2ub"')
+
 
 
     }
@@ -43,9 +55,15 @@ android {
     signingConfigs {
         release {
             storeFile file('keystore/roomcornermovie.keystore')
-            storePassword getPropertis()['keyPassword']
-            keyAlias getPropertis()['keyAlias']
-            keyPassword getPropertis()['keyPassword']
+//            storePassword getPropertis()['keyPassword']
+//            keyAlias getPropertis()['keyAlias']
+//            keyPassword getPropertis()['keyPassword']
+
+            storePassword "Secret1054!"
+            keyAlias "roomcornermovie"
+            keyPassword "Secret1054!"
+
+
         }
     }
 
