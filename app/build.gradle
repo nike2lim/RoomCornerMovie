@@ -155,7 +155,8 @@ dependencies {
     implementation deps.util.jsoup
 
     // Log
-    implementation deps.util.log
+    implementation deps.util.logger         // com.orhanobut:logger
+    implementation deps.util.log            // timber
 
     // lifecycle
     implementation deps.lifecycle.viewmodel_ktx

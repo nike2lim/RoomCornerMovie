@@ -57,7 +57,8 @@ deps.view = [
 ]
 
 deps.util = [
-        log                 : "com.orhanobut:logger:2.2.0",                                 // https://github.com/orhanobut/logger
+        logger              : "com.orhanobut:logger:2.2.0",                                 // https://github.com/orhanobut/logger
+        log                 : "com.jakewharton.timber:timber:4.7.1",                        // https://github.com/JakeWharton/timber
         jsoup               : "org.jsoup:jsoup:1.11.3"                                      // https://github.com/jhy/jsoup
 ]
 

@@ -7,9 +7,12 @@ import androidx.lifecycle.ViewModel
 import com.orhanobut.logger.Logger
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 import kr.shlim.roomcornermovie.BuildConfig
+import kr.shlim.roomcornermovie.common.CONSTANT_MAX_MOVIE_COUNT
 import kr.shlim.roomcornermovie.ext.base
+import kr.shlim.roomcornermovie.ext.plusAssign
 import kr.shlim.roomcornermovie.model.KobisDailyBoxOfficeListDTO
 import kr.shlim.roomcornermovie.model.naver.NaverMovieItem
 import kr.shlim.roomcornermovie.model.naver.NaverMovieListDTO
@@ -19,14 +22,31 @@ import org.jsoup.Jsoup
 class MainViewModel : ViewModel() {
     private val TAG = MainViewModel::class.java.simpleName
 
+    val compositeDisposable: CompositeDisposable = CompositeDisposable()
+
     private val _movieList = MutableLiveData<List<NaverMovieListDTO>>()
     val movieList : LiveData<List<NaverMovieListDTO>> by lazy { _movieList }
+
+    enum class LoadingStatus {
+        LOADING,
+        ERROR,
+        DONE
+    }
+
+    val _loadingState = MutableLiveData<LoadingStatus>()
+    val loadingStatus = _loadingState
+
+    var recvItemCount = 0
 
     private val _movieItemList = MutableLiveData<List<NaverMovieItem>>()
     val movieItemList : LiveData<List<NaverMovieItem>> by lazy { _movieItemList }
 
-    val maxCount : Int = 20
+    val maxCount : Int = CONSTANT_MAX_MOVIE_COUNT
 
+    /**
+     * viewmodel click test
+     * @param v
+     */
     fun onButtonClick(v : View) {
         Logger.d(TAG, "onButtonClick() called with: v = [${v.id}]")
     }
@@ -36,26 +56,31 @@ class MainViewModel : ViewModel() {
      * @param targetDt ex) 20201129
      */
     fun getMovieList(targetDt : String) {
-//        _movieList.value?.forEachIndexed { index, item ->
-//
-//            val temp = _movieList?.value?.get(index) as List<NaverMovieListDTO>
-//
-//
-//        }
-//        _movieItemList
+        _loadingState.value = LoadingStatus.LOADING
 
         val boxOffice = getBoxOffice(targetDt)
-
         var index = 0
+        var totalCount = 0
 
-        boxOffice.toObservable()
-            .map{ it -> it.boxOfficeResult.dailyBoxOfficeList }
-            .repeat(maxCount.toLong())
+        compositeDisposable += boxOffice.toObservable()
             .map{ it ->
-                it.get(index++)}
+                recvItemCount = it.boxOfficeResult.dailyBoxOfficeList.size
+                Logger.d("boxOffice recvItemCount = {$recvItemCount}")
+                totalCount = it.boxOfficeResult.dailyBoxOfficeList.size
+                it.boxOfficeResult.dailyBoxOfficeList
+                 }
+            .map{ it ->
+                totalCount = it.size
+                it.get(index)
+            }.repeat()
             .flatMap {
+                Logger.d("getMovieList index : ${index}")
                 Logger.d("it.movieNm : ${it.movieNm}")
-                getNaverAPI(it.movieNm).toObservable().base().take(maxCount.toLong())
+                Logger.d("take num : ${totalCount.toLong()-1}")
+
+                index++
+//                getNaverAPI(it.movieNm).toObservable().base().take(totalCount.toLong()-1)
+                getNaverAPI(it.movieNm).toObservable()
             }.base().subscribe(
                 {
                     Logger.d("naverAPI : ${it.items.get(0).title}")
@@ -66,11 +91,16 @@ class MainViewModel : ViewModel() {
                     updateData(list.get(0))
 
                     Logger.d("updateData : ${list.get(0).items.get(0).image}")
+                    Logger.d("updateData list : ${_movieItemList.value?.get(0)?.image}")
+
                     _movieList.value = list
                 },
                 {
                     Logger.e("naverAPI exception : ${it.message}")
+                    _loadingState.value = LoadingStatus.ERROR
+                    _loadingState.value = LoadingStatus.DONE
                 }, {
+                    _loadingState.value = LoadingStatus.DONE
                     Logger.e("naverAPI updateList")
                 }
             )
@@ -83,6 +113,8 @@ class MainViewModel : ViewModel() {
      */
     fun getBoxOffice(targetDt : String) : Single<KobisDailyBoxOfficeListDTO> {
         val apiKey = BuildConfig.kobisApiKey
+
+        Logger.d("getBoxOffice call targetDt = {$targetDt}")
         return APIClient.kobisApi.getDailyBoxOffice(
             apiKey,
             targetDt,
@@ -94,6 +126,8 @@ class MainViewModel : ViewModel() {
      * 영화 제목으로 검색하여 리스트를 가져온다.
      */
     fun getNaverAPI(title: String) : Single<NaverMovieListDTO> {
+        Logger.d("getNaverAPI title : {$title}")
+
         val clientId: String = BuildConfig.clientId
         val clientSecret: String = BuildConfig.clientSecret
         return APIClient.naverApi.getMovieList(clientId, clientSecret, title, 100)
@@ -103,7 +137,7 @@ class MainViewModel : ViewModel() {
      *
      */
     fun updateData( data : NaverMovieListDTO) {
-        Observable.just(data)
+        compositeDisposable += Observable.just(data)
             .base()
             .map { data.items.get(0) }
             .flatMap { getImageUrl(it) }
@@ -113,7 +147,6 @@ class MainViewModel : ViewModel() {
             },{
 
             },{
-
                 val list = mutableListOf<NaverMovieItem>()
                 list.add(data.items.get(0))
                 _movieItemList.value = list
@@ -165,4 +198,8 @@ class MainViewModel : ViewModel() {
         return titleObservable
     }
 
+    override fun onCleared() {
+        compositeDisposable.dispose()
+        super.onCleared()
+    }
 }

@@ -10,9 +10,11 @@
         android:id="@+id/imageview"
         android:layout_width="380dp"
         android:layout_height="400dp"
+        android:layout_centerInParent="true"
         android:layout_centerHorizontal="true"
         android:scaleType="fitCenter"
         android:transitionName="pair_thumb"
+        android:adjustViewBounds="false"
         />
 
     <TextView

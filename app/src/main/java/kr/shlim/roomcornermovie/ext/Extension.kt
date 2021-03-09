@@ -1,5 +1,8 @@
 package kr.shlim.roomcornermovie.ext
 
+import android.view.View
+import androidx.recyclerview.widget.LinearSmoothScroller
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.request.RequestOptions
 import io.reactivex.Observable
@@ -20,3 +23,16 @@ fun <T> Observable<T>.base() = subscribeOn(Schedulers.io()).observeOn(AndroidSch
 fun <T> Single<T>.base() = subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
 
+fun RecyclerView.smoothScrollToCenteredPosition(position: Int) {
+    val smoothScroller = object : LinearSmoothScroller(context) {
+        override fun calculateDxToMakeVisible(view: View?, snapPreference: Int): Int {
+            val dxToStart = super.calculateDxToMakeVisible(view, SNAP_TO_START)
+            val dxToEnd = super.calculateDxToMakeVisible(view, SNAP_TO_END)
+
+            return (dxToStart + dxToEnd) / 2
+        }
+    }
+
+    smoothScroller.targetPosition = position
+    layoutManager?.startSmoothScroll(smoothScroller)
+}
